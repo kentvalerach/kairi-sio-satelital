@@ -1,0 +1,28 @@
+# Parámetros extendidos por cuenca — KAIRI-SIO-SATELITAL
+# Estos valores complementan config/settings.py
+
+jucar:
+  embalses_principales:
+    - nombre: Alarcon
+      capacidad_hm3: 1118.0
+    - nombre: Contreras
+      capacidad_hm3: 852.0
+    - nombre: Tous
+      capacidad_hm3: 379.0
+  umbral_alerta_pct: 85
+
+segura:
+  embalses_principales:
+    - nombre: Cenajo
+      capacidad_hm3: 437.0
+    - nombre: Camarillas
+      capacidad_hm3: 37.0
+  umbral_alerta_pct: 80
+
+guadalquivir:
+  embalses_principales:
+    - nombre: Tranco
+      capacidad_hm3: 502.0
+    - nombre: Iznájar
+      capacidad_hm3: 981.0
+  umbral_alerta_pct: 85
