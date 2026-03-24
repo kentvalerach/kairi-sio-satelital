@@ -1,43 +1,56 @@
 """
 KAIRI-SIO-SATELITAL — Settings
-Configuración central: DB, GEE, Telegram, parámetros de cuencas y SSI.
-Lee variables desde config/.env automáticamente.
+Lee variables desde config/.env (local) o st.secrets / os.environ (Streamlit Cloud).
 """
 
 import os
 import sys
 from pathlib import Path
-from dotenv import load_dotenv
 
-# ── Cargar .env ──────────────────────────────────────────────────────
-_ENV_PATH = Path(__file__).parent / ".env"
-load_dotenv(_ENV_PATH)
+# ── Intentar cargar .env local ───────────────────────────────────────
+try:
+    from dotenv import load_dotenv
+    _ENV_PATH = Path(__file__).parent / ".env"
+    if _ENV_PATH.exists():
+        load_dotenv(_ENV_PATH)
+except ImportError:
+    pass
+
+# ── Intentar cargar st.secrets (Streamlit Cloud) ────────────────────
+try:
+    import streamlit as st
+    _secrets = st.secrets
+    def _get(key, default=""):
+        try:
+            return _secrets[key]
+        except:
+            return os.getenv(key, default)
+except Exception:
+    def _get(key, default=""):
+        return os.getenv(key, default)
 
 # ── PYTHONPATH automático ────────────────────────────────────────────
-# Asegura que la raíz del proyecto esté en el path sin necesitar
-# $env:PYTHONPATH manualmente en cada terminal
 _ROOT = str(Path(__file__).parent.parent)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 # ── Base de datos ────────────────────────────────────────────────────
 DB_CONFIG = {
-    "host":     os.getenv("DB_HOST", "localhost"),
-    "port":     int(os.getenv("DB_PORT", "5432")),
-    "dbname":   os.getenv("DB_NAME", "kairi_sio_satelital"),
-    "user":     os.getenv("DB_USER", "postgres"),
-    "password": os.getenv("DB_PASSWORD", ""),
+    "host":     _get("DB_HOST", "localhost"),
+    "port":     int(_get("DB_PORT", "5432")),
+    "dbname":   _get("DB_NAME", "kairi_sio_satelital"),
+    "user":     _get("DB_USER", "postgres"),
+    "password": _get("DB_PASSWORD", ""),
 }
 
 # ── Google Earth Engine ──────────────────────────────────────────────
-GEE_PROJECT = os.getenv("GEE_PROJECT", "kairi-sio-satelital")
+GEE_PROJECT = _get("GEE_PROJECT", "kairi-sio-satelital")
 
 # ── Telegram ─────────────────────────────────────────────────────────
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID", "")
+TELEGRAM_BOT_TOKEN = _get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID   = _get("TELEGRAM_CHAT_ID", "")
 
-# ── Cuencas: bounding boxes y metadatos ─────────────────────────────
-# bbox = [lon_min, lat_min, lon_max, lat_max]
+# ── Cuencas ──────────────────────────────────────────────────────────
 CUENCAS = {
     "Jucar": {
         "bbox":          [-2.0, 38.5, 0.5, 40.5],
@@ -62,10 +75,7 @@ CUENCAS = {
     },
 }
 
-# ── Parámetros SSI por cuenca ────────────────────────────────────────
-# vv_min/vv_max: rango backscatter SAR (dB)
-# p95_mm: percentil 95 precipitación acumulada 7d histórica
-# weights: pesos w1(SAR), w2(precip), w3(NDVI-inv)
+# ── Parámetros SSI ───────────────────────────────────────────────────
 SSI_PARAMS = {
     "Jucar": {
         "vv_min":  -25.0,
