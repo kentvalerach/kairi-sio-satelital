@@ -1,8 +1,8 @@
 """
-Test 4: añade st_folium al stack que ya funciona.
-- Selectbox idioma + plotly + tabs + FOLIUM
-- Si esto rompe → st_folium es el culpable definitivo
-- Si esto funciona → el culpable es el import lazy de dashboard.historical
+Test 5: añade el import de dashboard.historical al stack que ya funciona.
+- Selectbox idioma + plotly + tabs + folium + HISTORICAL
+- Si esto rompe → dashboard.historical es el culpable definitivo
+- Si esto funciona → algo en cómo combinamos todo en app.py rompe
 """
 
 import streamlit as st
@@ -12,8 +12,8 @@ from database.queries import get_latest_ssi, get_ssi_history
 from dashboard.charts import build_ssi_timeseries, build_risk_gauge, build_components_bar
 from dashboard.map_component import build_risk_map
 
-st.set_page_config(page_title="Test 4 KAIRI", layout="wide")
-st.title("🛰️ Test 4 — Plotly + Tabs + Folium")
+st.set_page_config(page_title="Test 5 KAIRI", layout="wide")
+st.title("🛰️ Test 5 — Stack completo + dashboard.historical")
 
 with st.sidebar:
     lang = st.selectbox("Idioma", ["ES", "DE", "EN"])
@@ -65,14 +65,12 @@ with tab_dash:
 
     st.divider()
 
-    # AQUÍ está el cambio: añadimos st_folium
     st.subheader(T["mapa"])
     try:
         mapa = build_risk_map(latest)
         st_folium(mapa, width=700, height=420, returned_objects=[])
     except Exception as e:
         st.error(f"Error mapa: {e}")
-        st.exception(e)
 
     st.divider()
 
@@ -97,17 +95,23 @@ with tab_dash:
                 except Exception as e:
                     st.error(f"Error charts {cuenca}: {e}")
 
+# AQUÍ está el cambio: import + render de dashboard.historical en el segundo tab
 with tab_hist:
-    st.info("Tab histórico (placeholder)")
-    st.write(f"Datos históricos cargados: {sum(len(v) for v in history.values())} filas")
+    try:
+        from dashboard.historical import render_historical_tab
+        render_historical_tab(lang=lang)
+    except Exception as e:
+        st.error(f"Error historical: {e}")
+        st.exception(e)
 
 st.divider()
 st.markdown("""
 **Prueba:**
 1. Cambia idioma 3 veces
-2. Cambia entre tabs
-3. Pulsa F5
+2. **Pulsa el tab Histórico** → este es el momento crítico
+3. Vuelve al primer tab
+4. Pulsa F5
 
-❌ Pantalla blanca → **st_folium es el culpable confirmado**
-✅ Funciona → entonces el culpable es el import de `dashboard.historical`
+❌ Pantalla blanca → `dashboard.historical` es el culpable confirmado
+✅ Funciona → necesitamos otro test, algo extraño en la combinación
 """)
