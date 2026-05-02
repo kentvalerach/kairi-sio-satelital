@@ -1,6 +1,13 @@
 """
 KAIRI-SIO-SATELITAL — Dashboard Principal (Trilingüe ES/DE/EN)
 Tabs: Dashboard en tiempo real | Análisis Histórico
+
+Versión estable para Streamlit Cloud:
+- Mantiene st_folium (el dashboard abre bien)
+- Eliminado el botón "Actualizar datos" (causaba pantalla blanca)
+- Eliminado el slider de histórico (causaba pantalla blanca)
+- Histórico fijo a 90 días
+- Cache TTL=300s actualiza datos automáticamente cada 5 min
 """
 
 import streamlit as st
@@ -29,6 +36,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Días de histórico fijo (antes era un slider)
+DIAS_HISTORICO = 90
+
 # ════════════════════════════════════════════════════════════════════
 # Traducciones
 # ════════════════════════════════════════════════════════════════════
@@ -38,26 +48,29 @@ TEXTOS = {
         "titulo":            "🛰️ KAIRI-SIO-SATELITAL",
         "subtitulo":         "Sistema de Alerta Temprana de Inundaciones DANA — Cuencas Mediterráneas",
         "sidebar_subtitulo": "*Sistema de Alerta Temprana DANA*",
-        "historico_label":   "Histórico (días)",
-        "componentes_label": "Mostrar componentes SSI",
+        "historico_info":    f"📊 Histórico: últimos **{DIAS_HISTORICO} días**",
+        "componentes_info":  "🔬 Componentes SSI visibles abajo",
         "cuencas_label":     "**Cuencas monitorizadas:**",
         "deteccion_label":   "**Detección dual:**",
         "modo_a":            "💧 **Modo A** — Saturación progresiva",
         "modo_b":            "⚡ **Modo B** — DANA seco + lluvia extrema",
-        "actualizar":        "🔄 Actualizar datos",
-        "ultima_act":        "Última actualización",
+        "auto_refresh":      "🔄 Datos refrescados automáticamente cada 5 min",
+        "ultima_act":        "Última carga",
         "tab_dashboard":     "📡 Dashboard",
         "tab_historico":     "🔍 Análisis Histórico",
         "estado_actual":     "🗺️ Estado actual por cuenca",
         "panel_alertas":     "🚨 Panel de alertas",
         "sin_alertas":       "✅ Sin alertas activas",
         "ultimas_obs":       "**📋 Últimas observaciones:**",
-        "evolucion":         "📈 Evolución histórica SSI",
+        "evolucion":         "📈 Evolución histórica SSI (90 días)",
         "sin_historico":     "Sin datos históricos. Ejecuta el Análisis Histórico para poblar la DB.",
         "detalle":           "🔬 Detalle por cuenca",
         "sin_datos":         "sin datos",
         "metodologia":       "📖 Metodología",
         "ttt_label":         "TTT",
+        "error_mapa":        "⚠️ No se pudo renderizar el mapa",
+        "error_grafico":     "⚠️ No se pudo renderizar el gráfico",
+        "error_historico":   "⚠️ Error en el análisis histórico",
         "nivel_labels": {
             "BAJO":"BAJO","MODERADO":"MODERADO","ALTO":"ALTO","CRITICO":"CRÍTICO","SIN_DATOS":"SIN DATOS",
         },
@@ -79,26 +92,29 @@ TEXTOS = {
         "titulo":            "🛰️ KAIRI-SIO-SATELITAL",
         "subtitulo":         "Frühwarnsystem für DANA-Überschwemmungen — Mediterrane Einzugsgebiete",
         "sidebar_subtitulo": "*DANA-Frühwarnsystem*",
-        "historico_label":   "Verlauf (Tage)",
-        "componentes_label": "SSI-Komponenten anzeigen",
+        "historico_info":    f"📊 Verlauf: letzte **{DIAS_HISTORICO} Tage**",
+        "componentes_info":  "🔬 SSI-Komponenten unten sichtbar",
         "cuencas_label":     "**Überwachte Einzugsgebiete:**",
         "deteccion_label":   "**Doppelte Erkennung:**",
         "modo_a":            "💧 **Modus A** — Progressive Sättigung",
         "modo_b":            "⚡ **Modus B** — Trockener DANA + Extremregen",
-        "actualizar":        "🔄 Daten aktualisieren",
-        "ultima_act":        "Letzte Aktualisierung",
+        "auto_refresh":      "🔄 Daten alle 5 Min automatisch aktualisiert",
+        "ultima_act":        "Letzte Ladung",
         "tab_dashboard":     "📡 Dashboard",
         "tab_historico":     "🔍 Historische Analyse",
         "estado_actual":     "🗺️ Aktueller Status",
         "panel_alertas":     "🚨 Warnungen",
         "sin_alertas":       "✅ Keine aktiven Warnungen",
         "ultimas_obs":       "**📋 Letzte Beobachtungen:**",
-        "evolucion":         "📈 SSI-Zeitverlauf",
+        "evolucion":         "📈 SSI-Zeitverlauf (90 Tage)",
         "sin_historico":     "Keine Daten. Historische Analyse ausführen.",
         "detalle":           "🔬 Details",
         "sin_datos":         "keine Daten",
         "metodologia":       "📖 Methodik",
         "ttt_label":         "ZBS",
+        "error_mapa":        "⚠️ Karte konnte nicht gerendert werden",
+        "error_grafico":     "⚠️ Diagramm konnte nicht gerendert werden",
+        "error_historico":   "⚠️ Fehler in der historischen Analyse",
         "nivel_labels": {
             "BAJO":"NIEDRIG","MODERADO":"MÄSSIG","ALTO":"HOCH","CRITICO":"KRITISCH","SIN_DATOS":"KEINE DATEN",
         },
@@ -120,26 +136,29 @@ TEXTOS = {
         "titulo":            "🛰️ KAIRI-SIO-SATELITAL",
         "subtitulo":         "DANA Flood Early Warning System — Mediterranean River Basins",
         "sidebar_subtitulo": "*DANA Early Warning System*",
-        "historico_label":   "History (days)",
-        "componentes_label": "Show SSI components",
+        "historico_info":    f"📊 History: last **{DIAS_HISTORICO} days**",
+        "componentes_info":  "🔬 SSI components shown below",
         "cuencas_label":     "**Monitored basins:**",
         "deteccion_label":   "**Dual detection:**",
         "modo_a":            "💧 **Mode A** — Progressive saturation",
         "modo_b":            "⚡ **Mode B** — Dry DANA + extreme rainfall",
-        "actualizar":        "🔄 Refresh data",
-        "ultima_act":        "Last update",
+        "auto_refresh":      "🔄 Data auto-refreshed every 5 min",
+        "ultima_act":        "Last load",
         "tab_dashboard":     "📡 Dashboard",
         "tab_historico":     "🔍 Historical Analysis",
         "estado_actual":     "🗺️ Current status",
         "panel_alertas":     "🚨 Alert panel",
         "sin_alertas":       "✅ No active alerts",
         "ultimas_obs":       "**📋 Latest observations:**",
-        "evolucion":         "📈 SSI historical trend",
+        "evolucion":         "📈 SSI historical trend (90 days)",
         "sin_historico":     "No data. Run Historical Analysis to populate the DB.",
         "detalle":           "🔬 Detail",
         "sin_datos":         "no data",
         "metodologia":       "📖 Methodology",
         "ttt_label":         "TTT",
+        "error_mapa":        "⚠️ Could not render map",
+        "error_grafico":     "⚠️ Could not render chart",
+        "error_historico":   "⚠️ Error in historical analysis",
         "nivel_labels": {
             "BAJO":"LOW","MODERADO":"MODERATE","ALTO":"HIGH","CRITICO":"CRITICAL","SIN_DATOS":"NO DATA",
         },
@@ -161,16 +180,36 @@ TEXTOS = {
 
 EMOJI_NIVEL = {"BAJO":"🟢","MODERADO":"🟡","ALTO":"🟠","CRITICO":"🔴","SIN_DATOS":"⚪"}
 
-@st.cache_data(ttl=300)
-def load_latest_data():
-    return {c: get_latest_ssi(c) for c in CUENCAS}
-
-@st.cache_data(ttl=300)
-def load_history(days=90):
-    return {c: get_ssi_history(c, days) for c in CUENCAS}
 
 # ════════════════════════════════════════════════════════════════════
-# Sidebar
+# Loaders cacheados con manejo defensivo
+# ════════════════════════════════════════════════════════════════════
+
+@st.cache_data(ttl=300, show_spinner="Cargando datos recientes...")
+def load_latest_data():
+    out = {}
+    for c in CUENCAS:
+        try:
+            out[c] = get_latest_ssi(c)
+        except Exception as e:
+            st.warning(f"Error leyendo {c}: {e}")
+            out[c] = None
+    return out
+
+@st.cache_data(ttl=300, show_spinner="Cargando histórico...")
+def load_history(days=90):
+    out = {}
+    for c in CUENCAS:
+        try:
+            out[c] = get_ssi_history(c, days)
+        except Exception as e:
+            st.warning(f"Error leyendo histórico {c}: {e}")
+            out[c] = []
+    return out
+
+
+# ════════════════════════════════════════════════════════════════════
+# Sidebar (sin botón ni slider — controles eliminados)
 # ════════════════════════════════════════════════════════════════════
 
 with st.sidebar:
@@ -182,8 +221,8 @@ with st.sidebar:
     st.markdown(T["sidebar_subtitulo"])
     st.divider()
 
-    dias_historico      = st.slider(T["historico_label"], 30, 180, 90, step=30)
-    mostrar_componentes = st.checkbox(T["componentes_label"], value=True)
+    st.markdown(T["historico_info"])
+    st.markdown(T["componentes_info"])
 
     st.divider()
     st.markdown(T["cuencas_label"])
@@ -196,9 +235,7 @@ with st.sidebar:
     st.markdown(T["modo_b"])
 
     st.divider()
-    if st.button(T["actualizar"]):
-        st.cache_data.clear()
-        st.rerun()
+    st.caption(T["auto_refresh"])
     st.caption(f"{T['ultima_act']}: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
 
 # ════════════════════════════════════════════════════════════════════
@@ -216,7 +253,7 @@ tab_dash, tab_hist = st.tabs([T["tab_dashboard"], T["tab_historico"]])
 
 with tab_dash:
     latest  = load_latest_data()
-    history = load_history(dias_historico)
+    history = load_history(DIAS_HISTORICO)
 
     # Métricas
     cols = st.columns(len(CUENCAS))
@@ -241,7 +278,13 @@ with tab_dash:
     col_mapa, col_alertas = st.columns([2, 1])
     with col_mapa:
         st.subheader(T["estado_actual"])
-        st_folium(build_risk_map(latest), width=700, height=420, returned_objects=[])
+        try:
+            mapa = build_risk_map(latest)
+            st_folium(mapa, width=700, height=420, returned_objects=[])
+        except Exception as e:
+            st.error(f"{T['error_mapa']}: {e}")
+            with st.expander("Detalle técnico"):
+                st.exception(e)
 
     with col_alertas:
         st.subheader(T["panel_alertas"])
@@ -270,27 +313,37 @@ with tab_dash:
 
     st.divider()
 
-    # Serie temporal
+    # Serie temporal (siempre visible, 90 días fijos)
     st.subheader(T["evolucion"])
     if any(len(v) > 0 for v in history.values()):
-        st.plotly_chart(build_ssi_timeseries(history), use_container_width=True)
+        try:
+            st.plotly_chart(build_ssi_timeseries(history), use_container_width=True)
+        except Exception as e:
+            st.error(f"{T['error_grafico']}: {e}")
+            with st.expander("Detalle técnico"):
+                st.exception(e)
     else:
         st.info(T["sin_historico"])
 
     st.divider()
 
-    # Gauges + componentes
-    if mostrar_componentes:
-        st.subheader(T["detalle"])
-        cols2 = st.columns(len(CUENCAS))
-        for i, (cuenca, _) in enumerate(CUENCAS.items()):
-            data = latest.get(cuenca)
-            with cols2[i]:
-                if data:
+    # Gauges + componentes (siempre visibles, sin checkbox)
+    st.subheader(T["detalle"])
+    cols2 = st.columns(len(CUENCAS))
+    for i, (cuenca, _) in enumerate(CUENCAS.items()):
+        data = latest.get(cuenca)
+        with cols2[i]:
+            if data:
+                try:
                     st.plotly_chart(build_risk_gauge(data["ssi_score"], cuenca), use_container_width=True)
+                except Exception as e:
+                    st.error(f"{T['error_grafico']} (gauge {cuenca}): {e}")
+                try:
                     st.plotly_chart(build_components_bar(data, cuenca), use_container_width=True)
-                else:
-                    st.info(f"{cuenca}: {T['sin_datos']}")
+                except Exception as e:
+                    st.error(f"{T['error_grafico']} (componentes {cuenca}): {e}")
+            else:
+                st.info(f"{cuenca}: {T['sin_datos']}")
 
     st.divider()
     with st.expander(T["metodologia"]):
@@ -301,5 +354,10 @@ with tab_dash:
 # ════════════════════════════════════════════════════════════════════
 
 with tab_hist:
-    from dashboard.historical import render_historical_tab
-    render_historical_tab(lang=lang)
+    try:
+        from dashboard.historical import render_historical_tab
+        render_historical_tab(lang=lang)
+    except Exception as e:
+        st.error(f"{T['error_historico']}: {e}")
+        with st.expander("Detalle técnico"):
+            st.exception(e)
