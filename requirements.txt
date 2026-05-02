@@ -10,5 +10,5 @@ python-dotenv==1.0.1
 requests==2.32.3
 beautifulsoup4==4.12.3
 pyyaml==6.0.2
-earthengine-api==0.1.408
+earthengine-api==1.4.0
 geemap==0.34.5
