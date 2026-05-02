@@ -1,29 +1,28 @@
 """
-Test 3: añade st.tabs al stack que ya funciona.
-- Selectbox idioma + plotly + tabs
-- SIN folium, SIN historical
-- Si esto funciona limpio → culpable es st_folium o el import de historical
-- Si esto rompe → culpable es st.tabs
+Test 4: añade st_folium al stack que ya funciona.
+- Selectbox idioma + plotly + tabs + FOLIUM
+- Si esto rompe → st_folium es el culpable definitivo
+- Si esto funciona → el culpable es el import lazy de dashboard.historical
 """
 
 import streamlit as st
+from streamlit_folium import st_folium
 from config.settings import CUENCAS
 from database.queries import get_latest_ssi, get_ssi_history
 from dashboard.charts import build_ssi_timeseries, build_risk_gauge, build_components_bar
+from dashboard.map_component import build_risk_map
 
-st.set_page_config(page_title="Test 3 KAIRI", layout="wide")
-st.title("🛰️ Test 3 — Plotly + Tabs (sin folium, sin historical)")
+st.set_page_config(page_title="Test 4 KAIRI", layout="wide")
+st.title("🛰️ Test 4 — Plotly + Tabs + Folium")
 
-# Sidebar minimo
 with st.sidebar:
     lang = st.selectbox("Idioma", ["ES", "DE", "EN"])
     st.caption(f"Idioma actual: {lang}")
 
-# Traducciones mínimas para verificar que el idioma cambia
 TXT = {
-    "ES": {"tab1": "📡 Dashboard", "tab2": "🔍 Histórico", "header": "Métricas"},
-    "DE": {"tab1": "📡 Übersicht", "tab2": "🔍 Verlauf", "header": "Kennzahlen"},
-    "EN": {"tab1": "📡 Dashboard", "tab2": "🔍 History",  "header": "Metrics"},
+    "ES": {"tab1": "📡 Dashboard", "tab2": "🔍 Histórico", "header": "Métricas", "mapa": "Mapa de riesgo"},
+    "DE": {"tab1": "📡 Übersicht", "tab2": "🔍 Verlauf", "header": "Kennzahlen", "mapa": "Risikokarte"},
+    "EN": {"tab1": "📡 Dashboard", "tab2": "🔍 History",  "header": "Metrics", "mapa": "Risk map"},
 }
 T = TXT[lang]
 
@@ -50,7 +49,6 @@ def load_hist():
 latest = load_latest()
 history = load_hist()
 
-# AQUÍ está el cambio: añadimos tabs
 tab_dash, tab_hist = st.tabs([T["tab1"], T["tab2"]])
 
 with tab_dash:
@@ -64,6 +62,17 @@ with tab_dash:
                           delta=data['risk_level'])
             else:
                 st.metric(label=cuenca, value="N/D")
+
+    st.divider()
+
+    # AQUÍ está el cambio: añadimos st_folium
+    st.subheader(T["mapa"])
+    try:
+        mapa = build_risk_map(latest)
+        st_folium(mapa, width=700, height=420, returned_objects=[])
+    except Exception as e:
+        st.error(f"Error mapa: {e}")
+        st.exception(e)
 
     st.divider()
 
@@ -89,16 +98,16 @@ with tab_dash:
                     st.error(f"Error charts {cuenca}: {e}")
 
 with tab_hist:
-    st.info("Tab histórico (sin contenido por ahora — solo verificamos que st.tabs no rompe)")
+    st.info("Tab histórico (placeholder)")
     st.write(f"Datos históricos cargados: {sum(len(v) for v in history.values())} filas")
 
 st.divider()
 st.markdown("""
 **Prueba:**
-1. Cambia idioma 5 veces (ahora SÍ debe cambiar el texto de las pestañas)
+1. Cambia idioma 3 veces
 2. Cambia entre tabs
 3. Pulsa F5
 
-✅ Funciona → culpable es **st_folium** o el import de **dashboard.historical**
-❌ Pantalla blanca → culpable es **st.tabs**
+❌ Pantalla blanca → **st_folium es el culpable confirmado**
+✅ Funciona → entonces el culpable es el import de `dashboard.historical`
 """)
