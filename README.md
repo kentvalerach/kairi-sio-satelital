@@ -130,7 +130,7 @@ python alerts/notifier.py
 
 ### Despliegue en producción
 
-🌐 **[https://kairi-sio-satelital.streamlit.app](https://kairi-sio-satellit.streamlit.app)**
+🌐 **[https://kairi-sio-satellit.streamlit.app](https://kairi-sio-satellit.streamlit.app)**
 
 Tres idiomas (ES / DE / EN), refresco automático cada 5 minutos, mapa interactivo con marcadores codificados por nivel de riesgo, panel de alertas, evolución histórica de 90 días y análisis comparativo entre cuencas.
 
@@ -212,7 +212,7 @@ python pipeline_runner.py --dias 30
 
 ### Produktivumgebung
 
-🌐 **[https://kairi-sio-satelital.streamlit.app](https://kairi-sio-satellit.streamlit.app)**
+🌐 **[https://kairi-sio-satellit.streamlit.app](https://kairi-sio-satellit.streamlit.app)**
 
 Dreisprachig (ES / DE / EN), automatische Aktualisierung alle 5 Minuten, interaktive Karte mit risikofarbcodierten Markierungen, Warnpanel, historischer Verlauf über 90 Tage und vergleichende Analyse zwischen Einzugsgebieten.
 
@@ -307,7 +307,7 @@ python alerts/notifier.py
 
 ### Production Deployment
 
-🌐 **[https://kairi-sio-satelital.streamlit.app](https://kairi-sio-satellit.streamlit.app)**
+🌐 **[https://kairi-sio-satellit.streamlit.app](https://kairi-sio-satellit.streamlit.app)**
 
 Three languages (ES / DE / EN), 5-minute auto-refresh, interactive map with risk-coded markers, alert panel, 90-day historical evolution, and comparative basin analysis.
 
