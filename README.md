@@ -3,7 +3,7 @@
 **Sistema de Alerta Temprana de Inundaciones DANA**  
 Mediante Fusión de Datos Satelitales Multifuente
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://kairi-sio-satelital.streamlit.app)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://kairi-sio-satellit.streamlit.app)
 
 ## Motivación
 
