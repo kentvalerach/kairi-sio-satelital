@@ -5,6 +5,7 @@ Versión basada en streamlit_test5 (que funciona estable en Streamlit Cloud).
 - Textos completos en ES/DE/EN
 - Panel de alertas con st.error/st.warning/st.success nativos
 - Sin unsafe_allow_html, sin CSS custom, sin slider, sin botón refrescar
+- Los errores de carga de datos ahora se muestran (antes se ocultaban)
 """
 import sys
 import os
@@ -182,28 +183,30 @@ with st.sidebar:
 
 
 # ════════════════════════════════════════════════════════════════════
-# Loaders cacheados
+# Loaders cacheados (devuelven datos + errores para poder mostrarlos)
 # ════════════════════════════════════════════════════════════════════
 
 @st.cache_data(ttl=300)
 def load_latest():
-    out = {}
+    out, errores = {}, {}
     for c in CUENCAS:
         try:
             out[c] = get_latest_ssi(c)
         except Exception as e:
             out[c] = None
-    return out
+            errores[c] = repr(e)
+    return out, errores
 
 @st.cache_data(ttl=300)
 def load_hist():
-    out = {}
+    out, errores = {}, {}
     for c in CUENCAS:
         try:
             out[c] = get_ssi_history(c, DIAS_HISTORICO)
         except Exception as e:
             out[c] = []
-    return out
+            errores[c] = repr(e)
+    return out, errores
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -213,8 +216,13 @@ def load_hist():
 st.title(T["titulo"])
 st.caption(T["subtitulo"])
 
-latest = load_latest()
-history = load_hist()
+latest, errores_latest = load_latest()
+history, errores_hist = load_hist()
+
+for c, err in errores_latest.items():
+    st.error(f"[latest] {c}: {err}")
+for c, err in errores_hist.items():
+    st.error(f"[history] {c}: {err}")
 
 tab_dash, tab_hist = st.tabs([T["tab1"], T["tab2"]])
 
@@ -324,4 +332,3 @@ with tab_hist:
         render_historical_tab(lang=lang)
     except Exception as e:
         st.error(f"Error historical: {e}")
-
