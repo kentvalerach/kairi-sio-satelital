@@ -24,19 +24,10 @@ ICONO_NIVEL = {
 
 
 def build_risk_map(latest_ssi: dict) -> folium.Map:
-    """
-    Construye mapa Folium con marcadores por cuenca.
-
-    latest_ssi = {
-        "Jucar":        {"ssi_score": 44.86, "risk_level": "BAJO", ...},
-        "Segura":       {...},
-        "Guadalquivir": {...},
-    }
-    """
     m = folium.Map(
         location=[38.8, -2.5],
         zoom_start=6,
-        tiles="CartoDB positron",
+        tiles="OpenStreetMap",
     )
 
     for cuenca_name, meta in CUENCAS.items():
@@ -46,11 +37,10 @@ def build_risk_map(latest_ssi: dict) -> folium.Map:
         ttt        = data.get("ttt_hours") if data else None
         obs_date   = str(data.get("obs_date", "N/D")) if data else "N/D"
 
-        color  = COLOR_MAP[risk_level]
-        icono  = ICONO_NIVEL[risk_level]
+        color  = COLOR_MAP.get(risk_level, COLOR_MAP["SIN_DATOS"])
+        icono  = ICONO_NIVEL.get(risk_level, ICONO_NIVEL["SIN_DATOS"])
         radius = 18 + (ssi_score / 5)
 
-        # Popup HTML
         ttt_str = f"{ttt}h" if ttt else "N/D"
         popup_html = f"""
         <div style="font-family:sans-serif; min-width:180px">
@@ -76,7 +66,6 @@ def build_risk_map(latest_ssi: dict) -> folium.Map:
             tooltip=f"{cuenca_name}: SSI={ssi_score}% | {risk_level}",
         ).add_to(m)
 
-        # Etiqueta de texto sobre el marcador
         folium.Marker(
             location=meta["center"],
             icon=folium.DivIcon(
@@ -88,7 +77,6 @@ def build_risk_map(latest_ssi: dict) -> folium.Map:
             ),
         ).add_to(m)
 
-    # Leyenda
     legend_html = """
     <div style="position:fixed;bottom:30px;left:30px;z-index:1000;
          background:white;padding:10px;border-radius:8px;
